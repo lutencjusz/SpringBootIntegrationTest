@@ -15,6 +15,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * UWAGA: Musi być uruchomiony Docker Desktop i uruchomiona baza danych MsSQL loving_swartz
+ */
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class IntegrationTestApplicationTests {
