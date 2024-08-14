@@ -53,7 +53,7 @@ class IntegrationTestApplicationTests {
         MvcResult mvcResult = mockMvc.perform(get("/cars/" + id))
                 .andExpect(status().is4xxClientError()).andReturn();
         String actualMessage = Objects.requireNonNull(mvcResult.getResolvedException()).getMessage();
-        Assertions.assertEquals("Samochód o id " + id + " nie istnieje", actualMessage);
+        Assertions.assertEquals("Nie znaleziono samochodu o id: " + id, actualMessage);
 
     }
 
