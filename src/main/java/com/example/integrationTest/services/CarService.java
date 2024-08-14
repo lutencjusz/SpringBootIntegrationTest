@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class CarService {
@@ -48,7 +49,7 @@ public class CarService {
         return carRepository.findById(id).orElseThrow(() -> new CarNotFoundException(id));
     }
 
-    public Iterable<Car> getAllCars() {
+    public List<Car> getAllCars() {
         return carRepository.findAll();
     }
 

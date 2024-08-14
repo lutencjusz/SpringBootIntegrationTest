@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.hateoas.RepresentationModel;
 
 @NoArgsConstructor
 @ToString
@@ -15,7 +16,7 @@ import lombok.ToString;
 @Setter
 @Entity
 @Table(name = "cars")
-public class Car {
+public class Car extends RepresentationModel<Car> {
     @Id
     @GeneratedValue
     private Long id;
