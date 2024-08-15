@@ -1,6 +1,6 @@
 package com.example.integrationTest.services;
 
-import com.example.integrationTest.data.CarRepository;
+import com.example.integrationTest.repositories.CarRepository;
 import com.example.integrationTest.models.Car;
 import com.example.integrationTest.exceptions.CarNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;

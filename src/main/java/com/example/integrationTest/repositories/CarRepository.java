@@ -1,4 +1,4 @@
-package com.example.integrationTest.data;
+package com.example.integrationTest.repositories;
 
 import com.example.integrationTest.models.Car;
 import org.springframework.data.jpa.repository.JpaRepository;
