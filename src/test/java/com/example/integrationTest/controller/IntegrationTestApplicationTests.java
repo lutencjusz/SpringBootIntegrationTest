@@ -1,5 +1,7 @@
-package com.example.integrationTest;
+package com.example.integrationTest.controller;
 
+import com.example.integrationTest.Car;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -8,10 +10,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class IntegrationTestApplicationTests {
 
     @Autowired
@@ -29,9 +35,20 @@ class IntegrationTestApplicationTests {
     @Autowired
     ObjectMapper objectMapper;
 
+    private int getActualFreeId() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/cars"))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        String jsonResponse = mvcResult.getResponse().getContentAsString();
+        JsonNode rootNode = objectMapper.readTree(jsonResponse);
+        JsonNode carsNode = rootNode.path("_embedded").path("cars");
+        return carsNode.size() + 1;
+    }
+
     @Test
     void shouldReturnSelectCar() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/cars/1"))
+                .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.make").value("Audi"))
                 .andExpect(jsonPath("$.model").value("A4"))
@@ -49,11 +66,11 @@ class IntegrationTestApplicationTests {
 
     @Test
     void shouldReturn4xxWhenGet() throws Exception {
-        final String id = "9";
-        MvcResult mvcResult = mockMvc.perform(get("/cars/" + id))
+        int actualFreeId = getActualFreeId();
+        MvcResult mvcResult = mockMvc.perform(get("/cars/" + actualFreeId))
                 .andExpect(status().is4xxClientError()).andReturn();
         String actualMessage = Objects.requireNonNull(mvcResult.getResolvedException()).getMessage();
-        Assertions.assertEquals("Nie znaleziono samochodu o id: " + id, actualMessage);
+        Assertions.assertEquals("Nie znaleziono samochodu o id: " + actualFreeId, actualMessage);
 
     }
 
@@ -67,6 +84,25 @@ class IntegrationTestApplicationTests {
         Assertions.assertEquals("A4", actualCar.getModel());
         Assertions.assertEquals("black", actualCar.getColor());
         Assertions.assertEquals(2019, actualCar.getYear());
+    }
+
+    @Test
+    void shouldAddCar() throws Exception {
+        int actualFreeId = getActualFreeId();
+        Car car = new Car("Opel", "Astra", "red", 2015L);
+        mockMvc.perform(post("/cars")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(car)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/cars/" + actualFreeId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.make").value("Opel"))
+                .andExpect(jsonPath("$.model").value("Astra"))
+                .andExpect(jsonPath("$.color").value("red"))
+                .andExpect(jsonPath("$.year").value(2015));
     }
 
 }

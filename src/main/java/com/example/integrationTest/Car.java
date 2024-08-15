@@ -25,7 +25,7 @@ public class Car extends RepresentationModel<Car> {
     private String color;
     private Long year;
 
-    public Car(Long id, String make, String model, String color, Long year) {
+    public Car(String make, String model, String color, Long year) {
         if (make == null) {
             throw new IllegalArgumentException("Marka nie może być pusta");
         }
@@ -38,5 +38,9 @@ public class Car extends RepresentationModel<Car> {
         if (year == null) {
             throw new IllegalArgumentException("Rok produkcji nie może być pusty");
         }
+        this.make = make;
+        this.model = model;
+        this.color = color;
+        this.year = year;
     }
 }

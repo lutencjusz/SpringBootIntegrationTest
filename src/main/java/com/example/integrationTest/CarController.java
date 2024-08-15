@@ -40,7 +40,7 @@ public class CarController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
     @PostMapping
-    public Car saveCar(Car car) {
+    public Car saveCar(@RequestBody Car car) {
         return carService.saveCar(car);
     }
 }
