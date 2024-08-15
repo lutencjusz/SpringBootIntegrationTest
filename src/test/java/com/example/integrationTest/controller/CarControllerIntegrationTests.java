@@ -1,6 +1,6 @@
 package com.example.integrationTest.controller;
 
-import com.example.integrationTest.Car;
+import com.example.integrationTest.models.Car;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;

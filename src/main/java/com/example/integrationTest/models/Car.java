@@ -1,4 +1,4 @@
-package com.example.integrationTest;
+package com.example.integrationTest.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;

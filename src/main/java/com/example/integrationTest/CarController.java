@@ -1,5 +1,6 @@
 package com.example.integrationTest;
 
+import com.example.integrationTest.models.Car;
 import com.example.integrationTest.services.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
