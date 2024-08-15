@@ -8,9 +8,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Objects;
 
@@ -21,13 +25,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * UWAGA: Musi być uruchomiony Docker Desktop i uruchomiona baza danych MsSQL loving_swartz
+ * UWAGA: Musi być uruchomiony Docker Desktop i nie musi być uruchamiana baza MSSQL
  */
 
 @SpringBootTest
+@Testcontainers
 @AutoConfigureMockMvc
 @Transactional
-class IntegrationTestApplicationTests {
+class CarControllerIntegrationTests {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:16:0");
 
     @Autowired
     MockMvc mockMvc;
@@ -66,10 +75,25 @@ class IntegrationTestApplicationTests {
     }
 
     @Test
+    void shouldReturnAllCars() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/cars"))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        String jsonResponse = mvcResult.getResponse().getContentAsString();
+        JsonNode rootNode = objectMapper.readTree(jsonResponse);
+        JsonNode carsNode = rootNode.path("_embedded").path("cars");
+        Car[] cars = objectMapper.readValue(carsNode.toString(), Car[].class);
+        Assertions.assertTrue(cars.length >= 3);
+    }
+
+    @Test
     void shouldReturn4xxWhenGet() throws Exception {
         int actualFreeId = getActualFreeId();
         MvcResult mvcResult = mockMvc.perform(get("/cars/" + actualFreeId))
-                .andExpect(status().is4xxClientError()).andReturn();
+                .andDo(print())
+                .andExpect(status().is4xxClientError())
+                .andReturn();
         String actualMessage = Objects.requireNonNull(mvcResult.getResolvedException()).getMessage();
         Assertions.assertEquals("Nie znaleziono samochodu o id: " + actualFreeId, actualMessage);
 
@@ -79,6 +103,7 @@ class IntegrationTestApplicationTests {
     void shouldReturnCorrectValueInFirstCar() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/cars/1"))
                 .andExpect(status().is2xxSuccessful())
+                .andDo(print())
                 .andReturn();
         Car actualCar = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Car.class);
         Assertions.assertEquals("Audi", actualCar.getMake());
@@ -90,7 +115,7 @@ class IntegrationTestApplicationTests {
     @Test
     void shouldAddCarAndCheckActualFreeId() throws Exception {
         int actualFreeId = getActualFreeId();
-        Car car = new Car("Opel", "Astra", "red", 2015L);
+        Car car = new Car((long) actualFreeId, "Opel", "Astra", "red", 2015L);
         mockMvc.perform(post("/cars")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(car)))

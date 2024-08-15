@@ -33,7 +33,7 @@ public class CarService {
             Car[] cars = objectMapper.readValue(CARS_JSON, Car[].class);
             carRepository.saveAll(Arrays.asList(cars));
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to load car data", e);
+            throw new IllegalStateException("Błąd przy ładowaniu danych", e);
         }
     }
 
