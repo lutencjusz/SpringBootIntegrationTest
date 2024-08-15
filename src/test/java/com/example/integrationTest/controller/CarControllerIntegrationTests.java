@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * UWAGA: Musi być uruchomiony Docker Desktop i nie musi być uruchamiana baza MSSQL
  */
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 @Testcontainers
 @AutoConfigureMockMvc
 @Transactional
@@ -60,6 +62,7 @@ class CarControllerIntegrationTests {
         MvcResult mvcResult = mockMvc.perform(get("/cars/1"))
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.id").doesNotExist())
                 .andExpect(jsonPath("$.make").value("Audi"))
                 .andExpect(jsonPath("$.model").value("A4"))
                 .andExpect(jsonPath("$.color").value("black"))
@@ -125,6 +128,7 @@ class CarControllerIntegrationTests {
         mockMvc.perform(get("/cars/" + actualFreeId))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").doesNotExist())
                 .andExpect(jsonPath("$.make").value("Opel"))
                 .andExpect(jsonPath("$.model").value("Astra"))
                 .andExpect(jsonPath("$.color").value("red"))
