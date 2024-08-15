@@ -1,4 +1,4 @@
-package com.example.integrationTest;
+package com.example.integrationTest.controllers;
 
 import com.example.integrationTest.models.Car;
 import com.example.integrationTest.services.CarService;
