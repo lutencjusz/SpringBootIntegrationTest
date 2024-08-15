@@ -1,5 +1,6 @@
 package com.example.integrationTest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -17,8 +18,10 @@ import org.springframework.hateoas.RepresentationModel;
 @Entity
 @Table(name = "cars")
 public class Car extends RepresentationModel<Car> {
+
     @Id
     @GeneratedValue
+    @JsonProperty("id")
     private Long id;
     private String make;
     private String model;

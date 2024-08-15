@@ -42,6 +42,7 @@ class IntegrationTestApplicationTests {
         String jsonResponse = mvcResult.getResponse().getContentAsString();
         JsonNode rootNode = objectMapper.readTree(jsonResponse);
         JsonNode carsNode = rootNode.path("_embedded").path("cars");
+        Car[] cars = objectMapper.readValue(carsNode.toString(), Car[].class);
         return carsNode.size() + 1;
     }
 
@@ -75,7 +76,7 @@ class IntegrationTestApplicationTests {
     }
 
     @Test
-    void shouldReturnCorrectValue() throws Exception {
+    void shouldReturnCorrectValueInFirstCar() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/cars/1"))
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
@@ -87,7 +88,7 @@ class IntegrationTestApplicationTests {
     }
 
     @Test
-    void shouldAddCar() throws Exception {
+    void shouldAddCarAndCheckActualFreeId() throws Exception {
         int actualFreeId = getActualFreeId();
         Car car = new Car("Opel", "Astra", "red", 2015L);
         mockMvc.perform(post("/cars")
@@ -104,5 +105,4 @@ class IntegrationTestApplicationTests {
                 .andExpect(jsonPath("$.color").value("red"))
                 .andExpect(jsonPath("$.year").value(2015));
     }
-
 }

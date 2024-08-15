@@ -3,13 +3,17 @@ package com.example.integrationTest;
 import com.example.integrationTest.services.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.List;ó
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.springframework.data.util.Pair.of;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RestController
@@ -24,12 +28,13 @@ public class CarController {
     }
 
     @GetMapping
-    public ResponseEntity<CollectionModel<Car>> getAllCars() {
-        List<Car> allCars = carService.getAllCars();
-        allCars.forEach(car -> car.add(linkTo(CarController.class).slash(car.getId()).withSelfRel()));
+    public CollectionModel<EntityModel<Car>> getAllCars() {
+        List<Car> cars = carService.getAllCars();
+        List<EntityModel<Car>> halCars = cars.stream()
+                .map(car -> EntityModel.of(car, linkTo(CarController.class).slash(car.getId()).withSelfRel()))
+                .collect(Collectors.toList());
         Link link = linkTo(CarController.class).withSelfRel();
-        CollectionModel<Car> carCollectionModel = CollectionModel.of(allCars, link);
-        return ResponseEntity.ok(carCollectionModel);
+        return CollectionModel.of(halCars, link);
     }
 
     @GetMapping("/{id}")
