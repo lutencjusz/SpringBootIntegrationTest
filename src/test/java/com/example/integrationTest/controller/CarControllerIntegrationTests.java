@@ -23,8 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * UWAGA: Musi być uruchomiony Docker Desktop i nie musi być uruchamiana baza MSSQL
@@ -120,7 +119,15 @@ class CarControllerIntegrationTests {
     }
 
     @Test
-    void shouldReturn4xxWhenGet() throws Exception {
+    void shouldNoAccessWithoutJwt() throws Exception {
+        mockMvc.perform(get("/cars"))
+                .andDo(print())
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldReturn4xxWhenGetNonexistentCar() throws Exception {
         int actualFreeId = getActualFreeId();
         MvcResult mvcResult = mockMvc.perform(get("/cars/" + actualFreeId)
                         .header("Authorization", "Bearer " + jwtUser))
