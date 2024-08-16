@@ -58,7 +58,6 @@ class CarControllerIntegrationTests {
         String jsonResponse = mvcResult.getResponse().getContentAsString();
         JsonNode rootNode = objectMapper.readTree(jsonResponse);
         JsonNode carsNode = rootNode.path("_embedded").path("cars");
-        Car[] cars = objectMapper.readValue(carsNode.toString(), Car[].class);
         return carsNode.size() + 1;
     }
 
