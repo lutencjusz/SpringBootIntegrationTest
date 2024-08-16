@@ -1,23 +1,24 @@
 package com.example.integrationTest.controller;
 
 import com.example.integrationTest.models.Car;
+import com.example.integrationTest.models.MyUser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,25 +30,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * UWAGA: Musi być uruchomiony Docker Desktop i nie musi być uruchamiana baza MSSQL
  */
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Testcontainers
 @AutoConfigureMockMvc
-@Transactional
+//@Transactional
 class CarControllerIntegrationTests {
+
+    private static String jwtUser;
+    private final MyUser user = new MyUser(1L, "user", "user", "USER");
 
     @Container
     @ServiceConnection
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:16:0");
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     private int getActualFreeId() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/cars"))
+        MvcResult mvcResult = mockMvc.perform(get("/cars")
+                        .header("Authorization", "Bearer " + jwtUser))
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
         String jsonResponse = mvcResult.getResponse().getContentAsString();
@@ -57,9 +63,31 @@ class CarControllerIntegrationTests {
         return carsNode.size() + 1;
     }
 
+    private String getJwt(MyUser myUser) throws Exception {
+        AtomicReference<String> jwt = new AtomicReference<>();
+        mockMvc.perform(post("/register/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(myUser)))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/authenticate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(this.objectMapper.writeValueAsString(user)))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(result -> jwt.set(result.getResponse().getContentAsString()));
+        return jwt.get();
+    }
+
     @Test
+    @Order(1)
+    void shouldGetUsersJwt() throws Exception {
+        jwtUser = getJwt(user);
+    }
+
+    @Test
+    @Order(2)
     void shouldReturnSelectCar() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/cars/1"))
+        MvcResult mvcResult = mockMvc.perform(get("/cars/1")
+                        .header("Authorization", "Bearer " + jwtUser))
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.id").doesNotExist())
@@ -79,7 +107,8 @@ class CarControllerIntegrationTests {
 
     @Test
     void shouldReturnAllCars() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/cars"))
+        MvcResult mvcResult = mockMvc.perform(get("/cars")
+                        .header("Authorization", "Bearer " + jwtUser))
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
@@ -93,7 +122,8 @@ class CarControllerIntegrationTests {
     @Test
     void shouldReturn4xxWhenGet() throws Exception {
         int actualFreeId = getActualFreeId();
-        MvcResult mvcResult = mockMvc.perform(get("/cars/" + actualFreeId))
+        MvcResult mvcResult = mockMvc.perform(get("/cars/" + actualFreeId)
+                        .header("Authorization", "Bearer " + jwtUser))
                 .andDo(print())
                 .andExpect(status().is4xxClientError())
                 .andReturn();
@@ -104,7 +134,8 @@ class CarControllerIntegrationTests {
 
     @Test
     void shouldReturnCorrectValueInFirstCar() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/cars/1"))
+        MvcResult mvcResult = mockMvc.perform(get("/cars/1")
+                        .header("Authorization", "Bearer " + jwtUser))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(print())
                 .andReturn();
@@ -120,12 +151,14 @@ class CarControllerIntegrationTests {
         int actualFreeId = getActualFreeId();
         Car car = new Car((long) actualFreeId, "Opel", "Astra", "red", 2015L);
         mockMvc.perform(post("/cars")
+                        .header("Authorization", "Bearer " + jwtUser)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(car)))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/cars/" + actualFreeId))
+        mockMvc.perform(get("/cars/" + actualFreeId)
+                        .header("Authorization", "Bearer " + jwtUser))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").doesNotExist())
