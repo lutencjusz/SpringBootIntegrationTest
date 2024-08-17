@@ -17,6 +17,12 @@ The project is built using the following technologies:
 - **JUnit 5**: A testing framework for writing unit and integration tests.
 - **Test containers**: The technology that creates an independent test database based on Postgres.
 - **Mock MVC**: utility that allows you to simulate HTTP requests and test your application's controllers in a controlled environment without starting a full web server.
+- **Swagger**: A tool that helps document RESTful APIs by generating an interactive API documentation page.
+- **HATEOAS**: A constraint of the REST application architecture that stands for Hypermedia as the Engine of Application State.
+- **Lombok**: A library that helps reduce boilerplate code in Java classes.
+- **Hibernate**: An object-relational mapping (ORM) library that simplifies database operations in Java applications.
+- **MySQL**: A relational database management system used to store application data.
+- **Postgres**: A relational database management system used for testing purposes.
 
 ## Project Structure
 
