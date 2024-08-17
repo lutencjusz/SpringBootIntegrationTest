@@ -3,16 +3,20 @@ package com.example.integrationTest.services;
 import com.example.integrationTest.repositories.CarRepository;
 import com.example.integrationTest.models.Car;
 import com.example.integrationTest.exceptions.CarNotFoundException;
+import com.example.integrationTest.models.Car;
+import com.example.integrationTest.repositories.CarRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Service
+@Validated
 public class CarService {
 
     private static final String CARS_JSON = """
