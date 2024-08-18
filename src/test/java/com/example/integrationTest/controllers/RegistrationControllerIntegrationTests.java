@@ -2,7 +2,7 @@ package com.example.integrationTest.controllers;
 
 import org.junit.jupiter.api.Test;
 
-class RegistrationControllerTests {
+class RegistrationControllerIntegrationTests {
 
     @Test
     void ShouldRegisterUser() {
