@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureMockMvc
 //@Transactional
-public class MyUserControllerIntegrationTest {
+public class MyUserControllerIntegrationTests {
 
     private static String jwtUser, jwtAdmin;
     private final MyUser user = new MyUser(1L, "user", "user", "USER");
