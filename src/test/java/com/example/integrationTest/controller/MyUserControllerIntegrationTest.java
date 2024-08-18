@@ -121,6 +121,17 @@ public class MyUserControllerIntegrationTest {
 
     @Test
     @Order(8)
+    void shouldGetErrorDuringWrongAuthenticate() throws Exception {
+        mockMvc.perform(post("/authenticate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new MyUser(3L, "wrong", "wrong", "USER"))))
+                .andDo(print())
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    @Order(9)
     void shouldUserBeAnAuthorized() throws Exception {
         mockMvc.perform(get("/user")
                         .header("Authorization", "Bearer " + jwtUser))
@@ -130,7 +141,7 @@ public class MyUserControllerIntegrationTest {
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     void shouldAdminBeAnAuthorized() throws Exception {
         mockMvc.perform(get("/admin")
                         .header("Authorization", "Bearer " + jwtAdmin))
@@ -140,7 +151,7 @@ public class MyUserControllerIntegrationTest {
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     void shouldAdminBeAnUnauthorizedByUserToken() throws Exception {
         mockMvc.perform(get("/admin")
                         .header("Authorization", "Bearer " + jwtUser))
@@ -148,8 +159,4 @@ public class MyUserControllerIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().string(""));
     }
-
-
-
-
 }

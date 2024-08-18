@@ -16,7 +16,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -161,7 +163,7 @@ class CarControllerIntegrationTests {
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(car)))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         mockMvc.perform(get("/cars/" + actualFreeId)
                         .header("Authorization", "Bearer " + jwtUser))
@@ -172,5 +174,41 @@ class CarControllerIntegrationTests {
                 .andExpect(jsonPath("$.model").value("Astra"))
                 .andExpect(jsonPath("$.color").value("red"))
                 .andExpect(jsonPath("$.year").value(2015));
+    }
+
+    @Test
+    void shouldReturn400WhenAddCarWithEmptyFields() throws Exception {
+        String randomMake = RandomStringUtils.randomAlphabetic(5);
+        String randomModel = RandomStringUtils.randomAlphabetic(5);
+        List<Car> cars = List.of(new Car(4L, null, randomModel, "black", 2019L),
+                new Car(4L, randomMake, null, "black", 2019L),
+                new Car(4L, randomMake, randomModel, null, 2019L),
+                new Car(4L, randomMake, randomModel, "black", null),
+                new Car(4L, null, null, null, null));
+        for (Car car : cars) {
+            mockMvc.perform(post("/cars")
+                            .header("Authorization", "Bearer " + jwtUser)
+                            .contentType("application/json")
+                            .content(objectMapper.writeValueAsString(car)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("Wszystkie pola muszą być wypełnione"));
+        }
+    }
+
+    @Test
+    void shouldReturn400WhenAddExistingCar() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/cars/1")
+                        .header("Authorization", "Bearer " + jwtUser))
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        Car actualCar = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Car.class);
+        mockMvc.perform(post("/cars")
+                        .header("Authorization", "Bearer " + jwtUser)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(actualCar)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Samochód już istnieje"));
     }
 }

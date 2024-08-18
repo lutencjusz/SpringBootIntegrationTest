@@ -47,9 +47,6 @@ public class CarController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Car saveCar(@Valid @RequestBody Car car) {
-        if (car.getId() != null) {
-            throw new IllegalArgumentException("Id nie powinno być podane");
-        }
         if (car.getMake() == null || car.getModel() == null || car.getColor() == null || car.getYear() == null) {
             throw new IllegalArgumentException("Wszystkie pola muszą być wypełnione");
         }
